@@ -2,17 +2,21 @@
 import { useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import LoginForm from "@/components/auth/LoginForm";
+import { supabase } from "@/integrations/supabase/client";
 
 const Login = () => {
   const navigate = useNavigate();
 
   useEffect(() => {
-    // In a real app, we would check for existing auth session
-    // const checkSession = async () => {
-    //   const { data: { session } } = await supabase.auth.getSession();
-    //   if (session) navigate("/dashboard");
-    // };
-    // checkSession();
+    // Check for existing session
+    const checkSession = async () => {
+      const { data: { session } } = await supabase.auth.getSession();
+      if (session) {
+        navigate("/dashboard");
+      }
+    };
+    
+    checkSession();
   }, [navigate]);
 
   return (

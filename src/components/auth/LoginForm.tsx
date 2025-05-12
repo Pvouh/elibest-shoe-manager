@@ -6,10 +6,11 @@ import { Input } from "@/components/ui/input";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import { toast } from "@/components/ui/sonner";
 import { supabase } from "@/integrations/supabase/client";
+import { signInAsAdmin } from "@/lib/authUtils";
 
 const LoginForm = () => {
-  const [email, setEmail] = useState("");
-  const [password, setPassword] = useState("");
+  const [email, setEmail] = useState("admin@elibest.com");
+  const [password, setPassword] = useState("elibest123");
   const [isLoading, setIsLoading] = useState(false);
   const navigate = useNavigate();
 
@@ -18,31 +19,27 @@ const LoginForm = () => {
     setIsLoading(true);
 
     try {
-      // Authenticate with Supabase
-      const { data, error } = await supabase.auth.signInWithPassword({
-        email,
-        password,
-      });
-
-      if (error) {
-        toast.error(error.message);
+      // Only allow admin@elibest.com to login
+      if (email !== "admin@elibest.com") {
+        toast.error("Only admin@elibest.com is authorized.");
         setIsLoading(false);
         return;
       }
 
-      if (data?.user) {
-        // Check if the user has an @elibest.com email
-        if (data.user.email?.endsWith('@elibest.com')) {
-          toast.success("Login successful!");
-          navigate("/dashboard");
-        } else {
-          toast.error("Only @elibest.com emails are authorized.");
-          await supabase.auth.signOut();
-        }
+      // Try to sign in with the hardcoded admin credentials
+      const authData = await signInAsAdmin();
+      
+      if (authData?.user) {
+        toast.success("Login successful!");
+        navigate("/dashboard");
+      } else {
+        // If signInAsAdmin doesn't return user data but also doesn't throw an error,
+        // it means the account was created but not yet logged in
+        setIsLoading(false);
       }
     } catch (error) {
       toast.error("An unexpected error occurred. Please try again.");
-    } finally {
+      console.error("Login error:", error);
       setIsLoading(false);
     }
   };
