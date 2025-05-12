@@ -34,7 +34,7 @@ const LoginForm = () => {
         navigate("/dashboard");
       } else {
         // If signInAsAdmin doesn't return user data but also doesn't throw an error,
-        // it means the account was created but not yet logged in
+        // it means there was a problem with sign-in but the error was already handled
         setIsLoading(false);
       }
     } catch (error) {
