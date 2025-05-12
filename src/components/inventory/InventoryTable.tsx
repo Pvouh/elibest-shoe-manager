@@ -1,32 +1,65 @@
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { toast } from "@/components/ui/sonner";
-import { mockInventoryData } from "@/lib/mockData";
-
-interface InventoryItem {
-  id: string;
-  shoe_name: string;
-  size: number;
-  category: string;
-  stock: number;
-  buying_price: number;
-  selling_price: number;
-  profit: number;
-  isEditing?: boolean;
-  isModified?: boolean;
-}
+import { supabase } from "@/integrations/supabase/client";
+import { 
+  InventoryItem, 
+  fetchInventoryByCategory, 
+  updateInventoryItem,
+  validateItem,
+  formatCurrency
+} from "@/lib/inventoryUtils";
 
 interface InventoryTableProps {
   category: string;
 }
 
 const InventoryTable = ({ category }: InventoryTableProps) => {
-  const [items, setItems] = useState<InventoryItem[]>(
-    mockInventoryData.filter((item) => item.category === category)
-  );
+  const [items, setItems] = useState<InventoryItem[]>([]);
+  const [loading, setLoading] = useState(true);
   const [hasModifications, setHasModifications] = useState(false);
+
+  // Fetch inventory data when category changes
+  useEffect(() => {
+    const fetchData = async () => {
+      setLoading(true);
+      const data = await fetchInventoryByCategory(category);
+      setItems(data);
+      setLoading(false);
+    };
+
+    fetchData();
+  }, [category]);
+
+  // Set up real-time subscription for changes
+  useEffect(() => {
+    const channel = supabase
+      .channel('inventory-changes')
+      .on(
+        'postgres_changes',
+        {
+          event: '*',
+          schema: 'public',
+          table: 'inventory',
+          filter: `category=eq.${category}`
+        },
+        async () => {
+          // Refetch data when changes occur
+          const data = await fetchInventoryByCategory(category);
+          // Only update if we're not in the middle of editing
+          if (!hasModifications) {
+            setItems(data);
+          }
+        }
+      )
+      .subscribe();
+
+    return () => {
+      supabase.removeChannel(channel);
+    };
+  }, [category, hasModifications]);
 
   const startEditing = (id: string) => {
     setItems(
@@ -57,23 +90,7 @@ const InventoryTable = ({ category }: InventoryTableProps) => {
     setHasModifications(true);
   };
 
-  const validateItem = (item: InventoryItem): string | null => {
-    if (item.size < 1 || item.size > 20) {
-      return "Size must be between 1 and 20";
-    }
-    if (item.stock < 0) {
-      return "Stock quantity cannot be negative";
-    }
-    if (item.buying_price <= 0) {
-      return "Buying price must be greater than 0";
-    }
-    if (item.selling_price <= item.buying_price) {
-      return "Selling price must be greater than buying price";
-    }
-    return null;
-  };
-
-  const saveRow = (id: string) => {
+  const saveRow = async (id: string) => {
     const itemToSave = items.find((item) => item.id === id);
     if (!itemToSave) return;
 
@@ -83,19 +100,23 @@ const InventoryTable = ({ category }: InventoryTableProps) => {
       return;
     }
 
-    setItems(
-      items.map((item) =>
-        item.id === id ? { ...item, isEditing: false, isModified: false } : item
-      )
-    );
-    toast.success(`Changes saved for "${itemToSave.shoe_name}"`);
+    const success = await updateInventoryItem(itemToSave);
     
-    // Check if any items are still modified
-    const stillModified = items.some(item => item.id !== id && item.isModified);
-    setHasModifications(stillModified);
+    if (success) {
+      setItems(
+        items.map((item) =>
+          item.id === id ? { ...item, isEditing: false, isModified: false } : item
+        )
+      );
+      toast.success(`Changes saved for "${itemToSave.shoe_name}"`);
+      
+      // Check if any items are still modified
+      const stillModified = items.some(item => item.id !== id && item.isModified);
+      setHasModifications(stillModified);
+    }
   };
 
-  const saveAllChanges = () => {
+  const saveAllChanges = async () => {
     const modifiedItems = items.filter((item) => item.isModified);
     
     // Validate all modified items
@@ -110,24 +131,28 @@ const InventoryTable = ({ category }: InventoryTableProps) => {
     }
     
     // Save all changes
-    setItems(
-      items.map((item) =>
-        item.isModified ? { ...item, isEditing: false, isModified: false } : item
-      )
-    );
+    let successCount = 0;
     
-    toast.success(`${modifiedItems.length} changes saved to database`);
-    setHasModifications(false);
+    for (const item of modifiedItems) {
+      const success = await updateInventoryItem(item);
+      if (success) successCount++;
+    }
+    
+    if (successCount > 0) {
+      setItems(
+        items.map((item) =>
+          item.isModified ? { ...item, isEditing: false, isModified: false } : item
+        )
+      );
+      
+      toast.success(`${successCount} changes saved to database`);
+      setHasModifications(false);
+    }
   };
 
-  // Format currency for display
-  const formatCurrency = (amount: number) => {
-    return new Intl.NumberFormat("en-KE", {
-      style: "currency",
-      currency: "KES",
-      minimumFractionDigits: 2,
-    }).format(amount);
-  };
+  if (loading) {
+    return <div className="text-center py-8">Loading inventory data...</div>;
+  }
 
   return (
     <div className="bg-white rounded-lg shadow overflow-hidden">
@@ -299,7 +324,7 @@ const InventoryTable = ({ category }: InventoryTableProps) => {
         </div>
       )}
 
-      {items.length === 0 && (
+      {items.length === 0 && !loading && (
         <div className="text-center py-8 text-text/60">
           No inventory items found in {category} category. Add some items to get started.
         </div>

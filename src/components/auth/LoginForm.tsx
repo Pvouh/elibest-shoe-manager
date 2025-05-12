@@ -5,6 +5,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import { toast } from "@/components/ui/sonner";
+import { supabase } from "@/integrations/supabase/client";
 
 const LoginForm = () => {
   const [email, setEmail] = useState("");
@@ -16,22 +17,32 @@ const LoginForm = () => {
     e.preventDefault();
     setIsLoading(true);
 
-    // In a real app, this would connect to Supabase
-    // const { data, error } = await supabase.auth.signInWithPassword({
-    //   email,
-    //   password,
-    // });
-    
-    // For demo purposes:
-    if (email.endsWith('@elibest.com')) {
-      toast.success("Login successful!");
-      // Simulate loading
-      setTimeout(() => {
-        navigate("/dashboard");
+    try {
+      // Authenticate with Supabase
+      const { data, error } = await supabase.auth.signInWithPassword({
+        email,
+        password,
+      });
+
+      if (error) {
+        toast.error(error.message);
         setIsLoading(false);
-      }, 1000);
-    } else {
-      toast.error("Invalid credentials. Only @elibest.com emails are authorized.");
+        return;
+      }
+
+      if (data?.user) {
+        // Check if the user has an @elibest.com email
+        if (data.user.email?.endsWith('@elibest.com')) {
+          toast.success("Login successful!");
+          navigate("/dashboard");
+        } else {
+          toast.error("Only @elibest.com emails are authorized.");
+          await supabase.auth.signOut();
+        }
+      }
+    } catch (error) {
+      toast.error("An unexpected error occurred. Please try again.");
+    } finally {
       setIsLoading(false);
     }
   };
@@ -67,6 +78,7 @@ const LoginForm = () => {
             <Input
               id="password"
               type="password"
+              placeholder="elibest123"
               value={password}
               onChange={(e) => setPassword(e.target.value)}
               required
