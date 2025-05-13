@@ -39,14 +39,8 @@ export const signInAsAdmin = async () => {
  */
 const createAdminAccount = async () => {
   try {
-    // First try to delete any existing admin account that might be unconfirmed
-    const { data: existingUser } = await supabase.auth.admin.getUserByEmail("admin@elibest.com");
-    
-    if (existingUser?.user?.id) {
-      await supabase.auth.admin.deleteUser(existingUser.user.id);
-    }
-    
-    // Create a new admin account
+    // Create a new admin account directly without trying to check for existing user
+    // This avoids using the auth.admin API which requires special permissions
     const { data, error } = await supabase.auth.signUp({
       email: "admin@elibest.com",
       password: "elibest123",
