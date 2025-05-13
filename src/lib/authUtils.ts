@@ -5,25 +5,36 @@ import { toast } from "@/components/ui/sonner";
 /**
  * Attempts to sign in with the admin credentials
  */
-export const signInAsAdmin = async () => {
+export const signInAsAdmin = async (email: string, password: string) => {
   try {
-    // Try signing in first
+    // First check if the email is in our admin_credentials table
+    const { data: adminData, error: adminError } = await supabase
+      .from("admin_credentials")
+      .select("*")
+      .eq("email", email)
+      .eq("is_active", true)
+      .single();
+
+    if (adminError || !adminData) {
+      toast.error("Unauthorized access attempt");
+      console.error("Admin validation error:", adminError?.message || "User not authorized");
+      return null;
+    }
+
+    // If the email is authorized, attempt to sign in
     const { data, error } = await supabase.auth.signInWithPassword({
-      email: "admin@elibest.com",
-      password: "elibest123",
+      email: email,
+      password: password,
     });
 
     if (error) {
-      console.error("Admin sign-in error:", error.message);
-      
-      // If the error indicates user doesn't exist or email not confirmed, create/update admin
-      if (error.message.includes("Invalid login credentials") || 
-          error.message.includes("Email not confirmed")) {
-        return await createAdminAccount();
+      // If user doesn't exist yet, create it
+      if (error.message.includes("Invalid login credentials")) {
+        return await createAdminAccount(email, password);
       } else {
         toast.error(error.message);
+        return null;
       }
-      return null;
     }
 
     return data;
@@ -37,18 +48,15 @@ export const signInAsAdmin = async () => {
 /**
  * Creates the admin account if it doesn't exist
  */
-const createAdminAccount = async () => {
+const createAdminAccount = async (email: string, password: string) => {
   try {
-    // Create a new admin account directly without trying to check for existing user
-    // This avoids using the auth.admin API which requires special permissions
+    // Create a new admin account
     const { data, error } = await supabase.auth.signUp({
-      email: "admin@elibest.com",
-      password: "elibest123",
+      email: email,
+      password: password,
       options: {
-        emailRedirectTo: window.location.origin,
-        // Skip email verification
         data: {
-          confirmed_at: new Date().toISOString(),
+          role: "admin"
         }
       }
     });
@@ -61,8 +69,8 @@ const createAdminAccount = async () => {
 
     // Try to immediately sign in with the created account
     const { data: signInData, error: signInError } = await supabase.auth.signInWithPassword({
-      email: "admin@elibest.com",
-      password: "elibest123",
+      email: email,
+      password: password,
     });
 
     if (signInError) {

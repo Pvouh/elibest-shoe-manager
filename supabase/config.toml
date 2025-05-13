@@ -1,1 +1,6 @@
+
 project_id = "nizatxqaryleoolhxsci"
+
+[auth]
+enable_email_confirmation = false
+disable_signup = false

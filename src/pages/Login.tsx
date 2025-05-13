@@ -12,7 +12,20 @@ const Login = () => {
     const checkSession = async () => {
       const { data: { session } } = await supabase.auth.getSession();
       if (session) {
-        navigate("/dashboard");
+        // Verify that the logged-in user is actually in our admin table
+        const { data: adminData } = await supabase
+          .from("admin_credentials")
+          .select("*")
+          .eq("email", session.user.email)
+          .eq("is_active", true)
+          .single();
+
+        if (adminData) {
+          navigate("/dashboard");
+        } else {
+          // If the user is not in our admin table, sign them out
+          await supabase.auth.signOut();
+        }
       }
     };
     

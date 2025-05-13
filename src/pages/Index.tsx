@@ -13,8 +13,22 @@ const Index = () => {
       const { data: { session } } = await supabase.auth.getSession();
       
       if (session) {
-        // User is authenticated, redirect to dashboard
-        navigate("/dashboard");
+        // Verify the user is in admin_credentials
+        const { data: adminData } = await supabase
+          .from("admin_credentials")
+          .select("*")
+          .eq("email", session.user.email)
+          .eq("is_active", true)
+          .single();
+
+        if (adminData) {
+          // User is authenticated and is an admin, redirect to dashboard
+          navigate("/dashboard");
+        } else {
+          // User is authenticated but not an admin, sign them out and redirect to login
+          await supabase.auth.signOut();
+          navigate("/");
+        }
       } else {
         // User is not authenticated, redirect to login page
         navigate("/");

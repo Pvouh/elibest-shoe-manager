@@ -5,7 +5,6 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import { toast } from "@/components/ui/sonner";
-import { supabase } from "@/integrations/supabase/client";
 import { signInAsAdmin } from "@/lib/authUtils";
 
 const LoginForm = () => {
@@ -26,15 +25,14 @@ const LoginForm = () => {
         return;
       }
 
-      // Try to sign in with the hardcoded admin credentials
-      const authData = await signInAsAdmin();
+      // Try to sign in with the provided credentials
+      const authData = await signInAsAdmin(email, password);
       
       if (authData?.user) {
         toast.success("Login successful!");
         navigate("/dashboard");
       } else {
-        // If signInAsAdmin doesn't return user data but also doesn't throw an error,
-        // it means there was a problem with sign-in but the error was already handled
+        // If login fails but doesn't throw an error (already handled in signInAsAdmin)
         setIsLoading(false);
       }
     } catch (error) {
@@ -66,6 +64,7 @@ const LoginForm = () => {
               onChange={(e) => setEmail(e.target.value)}
               required
               className="w-full"
+              readOnly // Make email read-only since only admin@elibest.com is allowed
             />
           </div>
           <div className="space-y-2">
