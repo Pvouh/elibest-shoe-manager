@@ -14,14 +14,15 @@ import {
 
 interface InventoryTableProps {
   category: string;
+  refreshTrigger?: number;
 }
 
-const InventoryTable = ({ category }: InventoryTableProps) => {
+const InventoryTable = ({ category, refreshTrigger = 0 }: InventoryTableProps) => {
   const [items, setItems] = useState<InventoryItem[]>([]);
   const [loading, setLoading] = useState(true);
   const [hasModifications, setHasModifications] = useState(false);
 
-  // Fetch inventory data when category changes
+  // Fetch inventory data when category changes or refresh is triggered
   useEffect(() => {
     const fetchData = async () => {
       setLoading(true);
@@ -31,7 +32,7 @@ const InventoryTable = ({ category }: InventoryTableProps) => {
     };
 
     fetchData();
-  }, [category]);
+  }, [category, refreshTrigger]);
 
   // Set up real-time subscription for changes
   useEffect(() => {
