@@ -1,47 +1,15 @@
 
-import { useEffect, useState } from "react";
+import { useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import LoginForm from "@/components/auth/LoginForm";
-import { supabase } from "@/integrations/supabase/client";
 
 const Login = () => {
   const navigate = useNavigate();
-  const [isLoading, setIsLoading] = useState(true);
 
-  useEffect(() => {
-    // Check for existing session
-    const checkSession = async () => {
-      const { data: { session } } = await supabase.auth.getSession();
-      
-      if (session) {
-        // Verify that the logged-in user is actually in our admin table
-        const { data: adminData, error } = await supabase
-          .from("admin_credentials")
-          .select("*")
-          .eq("email", session.user.email);
-
-        if (adminData && adminData.length > 0) {
-          navigate("/dashboard");
-        } else {
-          // If the user is not in our admin table, sign them out
-          console.log("User not authorized as admin, signing out");
-          await supabase.auth.signOut();
-        }
-      }
-      
-      setIsLoading(false);
-    };
-    
-    checkSession();
-  }, [navigate]);
-
-  if (isLoading) {
-    return (
-      <div className="min-h-screen flex items-center justify-center">
-        <p>Loading...</p>
-      </div>
-    );
-  }
+  // Add a direct access button to dashboard
+  const goToDashboard = () => {
+    navigate("/dashboard");
+  };
 
   return (
     <div className="min-h-screen flex flex-col items-center justify-center bg-light p-4">
@@ -49,7 +17,23 @@ const Login = () => {
         <h1 className="text-4xl font-bold mb-2">ELIBEST MS</h1>
         <p className="text-text/70">Shoe Management System</p>
       </div>
-      <LoginForm />
+      
+      <div className="w-full max-w-md">
+        <button 
+          onClick={goToDashboard}
+          className="w-full bg-primary hover:bg-primary/90 text-white py-3 rounded-lg mb-4 font-medium"
+        >
+          Access Dashboard Directly
+        </button>
+        
+        <div className="border-t border-gray-200 my-6">
+          <p className="text-center text-text/70 bg-light relative top-[-12px] inline-block px-4">
+            OR
+          </p>
+        </div>
+        
+        <LoginForm />
+      </div>
     </div>
   );
 };

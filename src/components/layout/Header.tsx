@@ -10,20 +10,14 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { User } from "lucide-react";
 import { toast } from "@/components/ui/sonner";
-import { supabase } from "@/integrations/supabase/client";
 
 const Header = () => {
   const [activeLink, setActiveLink] = useState("shoes");
   const navigate = useNavigate();
 
-  const handleLogout = async () => {
-    try {
-      await supabase.auth.signOut();
-      toast.success("Logged out successfully");
-      navigate("/");
-    } catch (error) {
-      toast.error("Error logging out");
-    }
+  const handleLogout = () => {
+    toast.success("Logged out successfully");
+    navigate("/");
   };
 
   return (
@@ -71,7 +65,7 @@ const Header = () => {
             </DropdownMenuTrigger>
             <DropdownMenuContent align="end">
               <DropdownMenuItem className="font-medium">
-                admin@elibest.com
+                admin25@elibest.com
               </DropdownMenuItem>
               <DropdownMenuItem onClick={handleLogout}>Logout</DropdownMenuItem>
             </DropdownMenuContent>
