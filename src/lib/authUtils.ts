@@ -21,18 +21,20 @@ export const signInAsAdmin = async (email: string, password: string) => {
       return null;
     }
 
-    // If the email is authorized, attempt to sign in
+    // Try to sign in first
     const { data, error } = await supabase.auth.signInWithPassword({
       email: email,
       password: password,
     });
 
     if (error) {
-      // If user doesn't exist yet, create it with no email confirmation required
+      // If login fails, check if we need to create the account
       if (error.message.includes("Invalid login credentials")) {
+        console.log("Account doesn't exist, creating a new one");
         return await createAdminAccount(email, password);
       } else {
         toast.error(error.message);
+        console.error("Sign-in error:", error.message);
         return null;
       }
     }
@@ -50,7 +52,9 @@ export const signInAsAdmin = async (email: string, password: string) => {
  */
 const createAdminAccount = async (email: string, password: string) => {
   try {
-    // Create a new admin account with email confirmation disabled
+    console.log("Creating new admin account");
+    
+    // Create a new admin account with email confirmation explicitly disabled
     const { data, error } = await supabase.auth.signUp({
       email: email,
       password: password,
@@ -68,7 +72,9 @@ const createAdminAccount = async (email: string, password: string) => {
       return null;
     }
 
-    // After signup, immediately try to sign in without waiting for confirmation
+    console.log("Account created, attempting immediate sign-in");
+    
+    // After signup, immediately try to sign in
     const { data: signInData, error: signInError } = await supabase.auth.signInWithPassword({
       email: email,
       password: password,
