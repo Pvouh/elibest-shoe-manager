@@ -12,11 +12,10 @@ export const signInAsAdmin = async (email: string, password: string) => {
       .from("admin_credentials")
       .select("*")
       .eq("email", email)
-      .eq("is_active", true)
-      .single();
+      .eq("is_active", true);
 
-    if (adminError || !adminData) {
-      toast.error("Unauthorized access attempt");
+    if (adminError || !adminData || adminData.length === 0) {
+      toast.error("Invalid email or password");
       console.error("Admin validation error:", adminError?.message || "User not authorized");
       return null;
     }

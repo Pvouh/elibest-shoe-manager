@@ -8,8 +8,8 @@ import { toast } from "@/components/ui/sonner";
 import { signInAsAdmin } from "@/lib/authUtils";
 
 const LoginForm = () => {
-  const [email, setEmail] = useState("admin25@elibest.com");
-  const [password, setPassword] = useState("elibest123");
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
   const [isLoading, setIsLoading] = useState(false);
   const navigate = useNavigate();
 
@@ -18,13 +18,6 @@ const LoginForm = () => {
     setIsLoading(true);
 
     try {
-      // Only allow admin25@elibest.com to login
-      if (email !== "admin25@elibest.com") {
-        toast.error("Only admin25@elibest.com is authorized.");
-        setIsLoading(false);
-        return;
-      }
-
       // Try to sign in with the provided credentials
       const authData = await signInAsAdmin(email, password);
       
@@ -59,12 +52,11 @@ const LoginForm = () => {
             <Input
               id="email"
               type="email"
-              placeholder="admin25@elibest.com"
+              placeholder="Enter your email"
               value={email}
               onChange={(e) => setEmail(e.target.value)}
               required
               className="w-full"
-              readOnly // Make email read-only
             />
           </div>
           <div className="space-y-2">
@@ -74,7 +66,7 @@ const LoginForm = () => {
             <Input
               id="password"
               type="password"
-              placeholder="elibest123"
+              placeholder="Enter your password"
               value={password}
               onChange={(e) => setPassword(e.target.value)}
               required

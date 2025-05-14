@@ -15,24 +15,16 @@ const Login = () => {
       
       if (session) {
         // Verify that the logged-in user is actually in our admin table
-        try {
-          const { data: adminData, error } = await supabase
-            .from("admin_credentials")
-            .select("*")
-            .eq("email", session.user.email)
-            .eq("is_active", true)
-            .single();
+        const { data: adminData, error } = await supabase
+          .from("admin_credentials")
+          .select("*")
+          .eq("email", session.user.email);
 
-          if (adminData) {
-            navigate("/dashboard");
-          } else {
-            // If the user is not in our admin table, sign them out
-            console.log("User not authorized as admin, signing out");
-            await supabase.auth.signOut();
-          }
-        } catch (error) {
-          console.error("Error checking admin status:", error);
-          // If there's an error checking admin status, sign out to be safe
+        if (adminData && adminData.length > 0) {
+          navigate("/dashboard");
+        } else {
+          // If the user is not in our admin table, sign them out
+          console.log("User not authorized as admin, signing out");
           await supabase.auth.signOut();
         }
       }
