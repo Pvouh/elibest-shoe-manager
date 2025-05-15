@@ -212,21 +212,32 @@ const InventoryTable = ({ category, refreshTrigger = 0 }: InventoryTableProps) =
                 >
                   {item.isEditing ? (
                     <Input
-                      type="number"
                       value={item.size}
                       onChange={(e) =>
-                        handleChange(item.id, "size", Number(e.target.value))
+                        handleChange(item.id, "size", e.target.value)
                       }
-                      min="1"
-                      max="20"
-                      step="0.5"
-                      className="h-8 w-20"
+                      className="h-8 w-28"
                     />
                   ) : (
                     item.size
                   )}
                 </td>
-                <td className="px-4 py-3 whitespace-nowrap">{item.category}</td>
+                <td
+                  className="px-4 py-3 whitespace-nowrap table-cell-editable"
+                  onDoubleClick={() => startEditing(item.id)}
+                >
+                  {item.isEditing ? (
+                    <Input
+                      value={item.category}
+                      onChange={(e) =>
+                        handleChange(item.id, "category", e.target.value)
+                      }
+                      className="h-8 w-28"
+                    />
+                  ) : (
+                    item.category
+                  )}
+                </td>
                 <td
                   className="px-4 py-3 whitespace-nowrap table-cell-editable"
                   onDoubleClick={() => startEditing(item.id)}

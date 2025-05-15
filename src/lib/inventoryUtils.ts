@@ -5,7 +5,7 @@ import { toast } from "@/components/ui/sonner";
 export interface InventoryItem {
   id: string;
   shoe_name: string;
-  size: number;
+  size: string | number;
   category: string;
   stock: number;
   buying_price: number;
@@ -61,18 +61,30 @@ export const updateInventoryItem = async (item: InventoryItem): Promise<boolean>
 
 // Validate inventory item
 export const validateItem = (item: InventoryItem): string | null => {
-  if (item.size < 1 || item.size > 20) {
-    return "Size must be between 1 and 20";
+  if (!item.shoe_name || item.shoe_name.trim() === "") {
+    return "Shoe name is required";
   }
+  
+  if (!item.size || (typeof item.size === 'string' && item.size.trim() === "")) {
+    return "Size is required";
+  }
+  
+  if (!item.category || item.category.trim() === "") {
+    return "Category is required";
+  }
+  
   if (item.stock < 0) {
     return "Stock quantity cannot be negative";
   }
+  
   if (item.buying_price <= 0) {
     return "Buying price must be greater than 0";
   }
+  
   if (item.selling_price <= item.buying_price) {
     return "Selling price must be greater than buying price";
   }
+  
   return null;
 };
 

@@ -3,13 +3,6 @@ import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
 import { toast } from "@/components/ui/sonner";
 import { supabase } from "@/integrations/supabase/client";
 
@@ -17,8 +10,8 @@ const AddInventoryForm = ({ onSuccess }: { onSuccess: () => void }) => {
   const [loading, setLoading] = useState(false);
   const [formData, setFormData] = useState({
     shoe_name: "",
-    size: 0,
-    category: "men",
+    size: "",
+    category: "",
     stock: 0,
     buying_price: 0,
     selling_price: 0,
@@ -28,14 +21,9 @@ const AddInventoryForm = ({ onSuccess }: { onSuccess: () => void }) => {
     const { name, value } = e.target;
     setFormData({
       ...formData,
-      [name]: name === "shoe_name" ? value : Number(value),
-    });
-  };
-
-  const handleCategoryChange = (value: string) => {
-    setFormData({
-      ...formData,
-      category: value,
+      [name]: name === "shoe_name" || name === "size" || name === "category" 
+        ? value 
+        : Number(value),
     });
   };
 
@@ -52,8 +40,13 @@ const AddInventoryForm = ({ onSuccess }: { onSuccess: () => void }) => {
       return;
     }
 
-    if (formData.size < 1 || formData.size > 20) {
-      toast.error("Size must be between 1 and 20");
+    if (!formData.size) {
+      toast.error("Size range is required");
+      return;
+    }
+
+    if (!formData.category) {
+      toast.error("Category is required");
       return;
     }
 
@@ -79,8 +72,13 @@ const AddInventoryForm = ({ onSuccess }: { onSuccess: () => void }) => {
       const profit = calculateProfit();
       
       const { error } = await supabase.from("inventory").insert({
-        ...formData,
-        profit,
+        shoe_name: formData.shoe_name,
+        size: formData.size,
+        category: formData.category,
+        stock: formData.stock,
+        buying_price: formData.buying_price,
+        selling_price: formData.selling_price,
+        profit: profit,
       });
 
       if (error) {
@@ -91,8 +89,8 @@ const AddInventoryForm = ({ onSuccess }: { onSuccess: () => void }) => {
       // Reset form
       setFormData({
         shoe_name: "",
-        size: 0,
-        category: "men",
+        size: "",
+        category: "",
         stock: 0,
         buying_price: 0,
         selling_price: 0,
@@ -126,33 +124,24 @@ const AddInventoryForm = ({ onSuccess }: { onSuccess: () => void }) => {
 
         <div className="space-y-2">
           <Label htmlFor="category">Category</Label>
-          <Select
+          <Input
+            id="category"
+            name="category"
             value={formData.category}
-            onValueChange={handleCategoryChange}
-          >
-            <SelectTrigger>
-              <SelectValue placeholder="Select category" />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="men">Men</SelectItem>
-              <SelectItem value="women">Women</SelectItem>
-              <SelectItem value="kids">Kids</SelectItem>
-              <SelectItem value="slippers">Slippers</SelectItem>
-            </SelectContent>
-          </Select>
+            onChange={handleChange}
+            placeholder="men, women, kids, or slippers"
+            required
+          />
         </div>
 
         <div className="space-y-2">
-          <Label htmlFor="size">Size</Label>
+          <Label htmlFor="size">Size Range</Label>
           <Input
             id="size"
             name="size"
-            type="number"
             value={formData.size}
             onChange={handleChange}
-            min={1}
-            max={20}
-            step={0.5}
+            placeholder="20-45"
             required
           />
         </div>
