@@ -21,9 +21,9 @@ const AddInventoryForm = ({ onSuccess }: { onSuccess: () => void }) => {
     const { name, value } = e.target;
     setFormData({
       ...formData,
-      [name]: name === "shoe_name" || name === "size" || name === "category" 
-        ? value 
-        : Number(value),
+      [name]: name === "stock" || name === "buying_price" || name === "selling_price" 
+        ? Number(value) 
+        : value,
     });
   };
 
@@ -71,9 +71,15 @@ const AddInventoryForm = ({ onSuccess }: { onSuccess: () => void }) => {
       // Calculate profit before inserting
       const profit = calculateProfit();
       
+      // Convert size to number if storing a single number
+      // Or use a size range as is if it's a range (e.g., "20-45")
+      const sizeValue = formData.size.includes("-") ? 
+        parseFloat(formData.size.split("-")[0]) || null : 
+        parseFloat(formData.size) || null;
+
       const { error } = await supabase.from("inventory").insert({
         shoe_name: formData.shoe_name,
-        size: formData.size,
+        size: sizeValue,
         category: formData.category,
         stock: formData.stock,
         buying_price: formData.buying_price,

@@ -41,10 +41,16 @@ export const updateInventoryItem = async (item: InventoryItem): Promise<boolean>
   try {
     // Create a clean object without isEditing and isModified flags
     const { isEditing, isModified, ...cleanItem } = item;
+    
+    // Convert size to number if it's stored as a string
+    const updatedItem = {
+      ...cleanItem,
+      size: typeof cleanItem.size === 'string' ? parseFloat(cleanItem.size) || null : cleanItem.size
+    };
 
     const { error } = await supabase
       .from('inventory')
-      .update(cleanItem)
+      .update(updatedItem)
       .eq('id', item.id);
 
     if (error) {
