@@ -5,7 +5,7 @@ import { toast } from "@/components/ui/sonner";
 export interface InventoryItem {
   id: string;
   shoe_name: string;
-  size: string;
+  size: number;
   category: string;
   stock: number;
   buying_price: number;
@@ -43,7 +43,6 @@ export const updateInventoryItem = async (item: InventoryItem): Promise<boolean>
     const { isEditing, isModified, ...cleanItem } = item;
     
     // We no longer need to calculate profit here as it will be calculated by the database trigger
-    // Just create a clean version of the item without the UI-specific flags
     
     const { error } = await supabase
       .from('inventory')
@@ -68,7 +67,7 @@ export const validateItem = (item: InventoryItem): string | null => {
     return "Shoe name is required";
   }
   
-  if (!item.size || item.size.trim() === "") {
+  if (!item.size) {
     return "Size is required";
   }
   

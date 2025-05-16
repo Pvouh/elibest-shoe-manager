@@ -10,7 +10,7 @@ const AddInventoryForm = ({ onSuccess }: { onSuccess: () => void }) => {
   const [loading, setLoading] = useState(false);
   const [formData, setFormData] = useState({
     shoe_name: "",
-    size: "",
+    size: 0,
     category: "",
     stock: 0,
     buying_price: 0,
@@ -21,7 +21,7 @@ const AddInventoryForm = ({ onSuccess }: { onSuccess: () => void }) => {
     const { name, value } = e.target;
     setFormData({
       ...formData,
-      [name]: name === "stock" || name === "buying_price" || name === "selling_price" 
+      [name]: name === "stock" || name === "buying_price" || name === "selling_price" || name === "size" 
         ? Number(value) 
         : value,
     });
@@ -36,8 +36,8 @@ const AddInventoryForm = ({ onSuccess }: { onSuccess: () => void }) => {
       return;
     }
 
-    if (!formData.size) {
-      toast.error("Size range is required");
+    if (formData.size <= 0) {
+      toast.error("Size must be greater than 0");
       return;
     }
 
@@ -64,7 +64,6 @@ const AddInventoryForm = ({ onSuccess }: { onSuccess: () => void }) => {
     setLoading(true);
 
     try {
-      // Use size as a string to support ranges like "20-45"
       const { error } = await supabase.from("inventory").insert({
         shoe_name: formData.shoe_name,
         size: formData.size,
@@ -83,7 +82,7 @@ const AddInventoryForm = ({ onSuccess }: { onSuccess: () => void }) => {
       // Reset form
       setFormData({
         shoe_name: "",
-        size: "",
+        size: 0,
         category: "",
         stock: 0,
         buying_price: 0,
@@ -129,14 +128,16 @@ const AddInventoryForm = ({ onSuccess }: { onSuccess: () => void }) => {
         </div>
 
         <div className="space-y-2">
-          <Label htmlFor="size">Size Range</Label>
+          <Label htmlFor="size">Size</Label>
           <Input
             id="size"
             name="size"
+            type="number"
             value={formData.size}
             onChange={handleChange}
-            placeholder="20-45"
+            placeholder="42"
             required
+            min={1}
           />
         </div>
 

@@ -212,11 +212,13 @@ const InventoryTable = ({ category, refreshTrigger = 0 }: InventoryTableProps) =
                 >
                   {item.isEditing ? (
                     <Input
+                      type="number"
                       value={item.size}
                       onChange={(e) =>
-                        handleChange(item.id, "size", e.target.value)
+                        handleChange(item.id, "size", Number(e.target.value))
                       }
                       className="h-8 w-28"
+                      min={1}
                     />
                   ) : (
                     item.size
