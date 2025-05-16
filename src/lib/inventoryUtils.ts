@@ -5,7 +5,7 @@ import { toast } from "@/components/ui/sonner";
 export interface InventoryItem {
   id: string;
   shoe_name: string;
-  size: string | number;
+  size: string;
   category: string;
   stock: number;
   buying_price: number;
@@ -68,7 +68,7 @@ export const validateItem = (item: InventoryItem): string | null => {
     return "Shoe name is required";
   }
   
-  if (!item.size || (typeof item.size === 'string' && item.size.trim() === "")) {
+  if (!item.size || item.size.trim() === "") {
     return "Size is required";
   }
   

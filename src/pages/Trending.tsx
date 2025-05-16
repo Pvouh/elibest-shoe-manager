@@ -20,7 +20,7 @@ interface TrendingItem {
   category: string;
   selling_price: number;
   profit: number;
-  size: string | number;
+  size: string;
   stock: number;
 }
 

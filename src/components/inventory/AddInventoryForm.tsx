@@ -27,10 +27,6 @@ const AddInventoryForm = ({ onSuccess }: { onSuccess: () => void }) => {
     });
   };
 
-  const calculateProfit = () => {
-    return formData.selling_price - formData.buying_price;
-  };
-
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     
@@ -76,7 +72,7 @@ const AddInventoryForm = ({ onSuccess }: { onSuccess: () => void }) => {
         stock: formData.stock,
         buying_price: formData.buying_price,
         selling_price: formData.selling_price,
-        // Don't include profit field, let the database calculate it
+        // Don't include profit field, let the database trigger calculate it
       });
 
       if (error) {
