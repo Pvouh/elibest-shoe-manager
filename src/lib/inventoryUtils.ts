@@ -42,15 +42,12 @@ export const updateInventoryItem = async (item: InventoryItem): Promise<boolean>
     // Create a clean object without isEditing and isModified flags
     const { isEditing, isModified, ...cleanItem } = item;
     
-    // Convert size to number if it's stored as a string
-    const updatedItem = {
-      ...cleanItem,
-      size: typeof cleanItem.size === 'string' ? parseFloat(cleanItem.size) || null : cleanItem.size
-    };
-
+    // We no longer need to calculate profit here as it will be calculated by the database trigger
+    // Just create a clean version of the item without the UI-specific flags
+    
     const { error } = await supabase
       .from('inventory')
-      .update(updatedItem)
+      .update(cleanItem)
       .eq('id', item.id);
 
     if (error) {

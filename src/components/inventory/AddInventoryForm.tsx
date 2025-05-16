@@ -68,23 +68,15 @@ const AddInventoryForm = ({ onSuccess }: { onSuccess: () => void }) => {
     setLoading(true);
 
     try {
-      // Calculate profit before inserting
-      const profit = calculateProfit();
-      
-      // Convert size to number if storing a single number
-      // Or use a size range as is if it's a range (e.g., "20-45")
-      const sizeValue = formData.size.includes("-") ? 
-        parseFloat(formData.size.split("-")[0]) || null : 
-        parseFloat(formData.size) || null;
-
+      // Use size as a string to support ranges like "20-45"
       const { error } = await supabase.from("inventory").insert({
         shoe_name: formData.shoe_name,
-        size: sizeValue,
+        size: formData.size,
         category: formData.category,
         stock: formData.stock,
         buying_price: formData.buying_price,
         selling_price: formData.selling_price,
-        profit: profit,
+        // Don't include profit field, let the database calculate it
       });
 
       if (error) {
